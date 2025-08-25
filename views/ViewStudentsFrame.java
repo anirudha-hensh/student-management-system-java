@@ -23,7 +23,8 @@ public class ViewStudentsFrame extends JFrame {
             List<Student> students = StudentDAO.getAllStudents();
             for (Student s : students) {
                 model.addRow(new Object[]{
-                        s.getId(), s.getName(), s.getRollNumber(), s.getDepartment()
+                       s.getStudentId(), s.getName(), s.getRollNo(), s.getDepartment()
+
                 });
             }
         } catch (Exception e) {

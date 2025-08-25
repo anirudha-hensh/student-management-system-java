@@ -1,54 +1,49 @@
+import dao.StudentDAO;
+import db.DBConnection;
+import models.Student;
+import views.*;  // if needed
+
 import javax.swing.*;
 import java.awt.*;
 
 public class MainMenu extends JFrame {
     public MainMenu() {
         setTitle("Attendance Management System");
-        setSize(400, 250);
+        setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Panel with layout and padding
-        JPanel panel = new JPanel(new GridLayout(3, 1, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        JButton markButton = new JButton("Mark Attendance");
+        JButton viewButton = new JButton("View Attendance");
 
-        // Styled buttons
-        JButton markAttendanceBtn = new JButton("➕ Mark Attendance");
-        markAttendanceBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        markAttendanceBtn.setBackground(new Color(70, 130, 180));
-        markAttendanceBtn.setForeground(Color.WHITE);
+        markButton.setPreferredSize(new Dimension(200, 40));
+        viewButton.setPreferredSize(new Dimension(200, 40));
 
-        JButton viewAttendanceBtn = new JButton("📋 View Attendance");
-        viewAttendanceBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        viewAttendanceBtn.setBackground(new Color(46, 139, 87));
-        viewAttendanceBtn.setForeground(Color.WHITE);
-
-        JButton exitBtn = new JButton("🚪 Exit");
-        exitBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        exitBtn.setBackground(new Color(220, 20, 60));
-        exitBtn.setForeground(Color.WHITE);
-
-        // Add listeners
-        markAttendanceBtn.addActionListener(e -> {
+        markButton.addActionListener(e -> {
+            System.out.println("Opening MarkAttendance...");
             SwingUtilities.invokeLater(() -> new MarkAttendance());
         });
 
-        viewAttendanceBtn.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> new ViewAttendance());
+        viewButton.addActionListener(e -> {
+            System.out.println("Opening ViewAttendance...");
+            SwingUtilities.invokeLater(() -> {
+                new ViewAttendance(); // make sure this constructor includes setVisible(true)
+            });
         });
 
-        exitBtn.addActionListener(e -> System.exit(0));
-
-        // Add buttons to panel
-        panel.add(markAttendanceBtn);
-        panel.add(viewAttendanceBtn);
-        panel.add(exitBtn);
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(15, 15, 15, 15);
+        gbc.gridy = 0;
+        panel.add(markButton, gbc);
+        gbc.gridy = 1;
+        panel.add(viewButton, gbc);
 
         add(panel);
         setVisible(true);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new MainMenu());
+        SwingUtilities.invokeLater(MainMenu::new);
     }
 }

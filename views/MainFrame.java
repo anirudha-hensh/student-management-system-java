@@ -1,5 +1,7 @@
 // views/MainFrame.java
 package views;
+import models.Student;
+import dao.StudentDAO;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

@@ -1,3 +1,8 @@
+import dao.StudentDAO;
+import db.DBConnection;
+import models.Student;
+import views.*;  // if needed
+
 import javax.swing.*;
 
 public class StudentDashboard extends JFrame {
@@ -12,7 +17,7 @@ public class StudentDashboard extends JFrame {
         setLocationRelativeTo(null);
 
         JButton viewAttendanceBtn = new JButton("View My Attendance");
-        viewAttendanceBtn.addActionListener(e -> new ViewAttendance(studentId).setVisible(true)); // ✅ Pass studentId
+       viewAttendanceBtn.addActionListener(e -> new ViewAttendance().setVisible(true)); // ✅ Pass studentId
 
         add(viewAttendanceBtn);
     }

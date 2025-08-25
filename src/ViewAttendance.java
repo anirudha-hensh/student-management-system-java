@@ -1,7 +1,11 @@
+import dao.StudentDAO;
+import db.DBConnection;
+import models.Student;
+import views.*;  // if needed
+
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.sql.*;
@@ -9,20 +13,8 @@ import java.sql.*;
 public class ViewAttendance extends JFrame {
     private JTable table;
     private DefaultTableModel model;
-    private String studentId = null;  // For filtering student-specific data
 
-
-   public ViewAttendance() {
-        this(null); // Default: admin view
-    }
-
-    public ViewAttendance(String studentId) {
-        this.studentId = studentId;
-        initComponents();
-        loadData();
-    }
-
-    private void initComponents() {
+    public ViewAttendance() {
         setTitle("View Attendance Records");
         setSize(800, 500);
         setLocationRelativeTo(null);
@@ -31,7 +23,7 @@ public class ViewAttendance extends JFrame {
 
         model = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
-                return column == 5; // Only 'Actions' column editable
+                return column == 5;
             }
         };
 
@@ -45,17 +37,14 @@ public class ViewAttendance extends JFrame {
         table = new JTable(model);
         table.setRowHeight(30);
 
-        // Set custom renderer and editor for "Actions" column
         table.getColumn("Actions").setCellRenderer(new ButtonRenderer());
         table.getColumn("Actions").setCellEditor(new ButtonEditor(new JCheckBox()));
 
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Load attendance data
         loadData();
 
-        // Export Button
         JButton exportBtn = new JButton("📁 Export to CSV");
         exportBtn.setFont(new Font("Arial", Font.BOLD, 14));
         exportBtn.setBackground(new Color(70, 130, 180));
@@ -69,8 +58,7 @@ public class ViewAttendance extends JFrame {
 
     private void loadData() {
         try {
-            Connection con = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/attendance_db", "root", "root1234");
+            Connection con = DBConnection.getConnection();  // ✅ Centralized connection
             String sql = "SELECT * FROM attendance ORDER BY date DESC";
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
@@ -88,7 +76,6 @@ public class ViewAttendance extends JFrame {
 
             rs.close();
             stmt.close();
-            con.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error loading data: " + e.getMessage());
         }
@@ -101,14 +88,14 @@ public class ViewAttendance extends JFrame {
 
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             try (PrintWriter pw = new PrintWriter(new FileWriter(fileChooser.getSelectedFile() + ".csv"))) {
-                for (int i = 0; i < model.getColumnCount() - 1; i++) { // skip last column
+                for (int i = 0; i < model.getColumnCount() - 1; i++) {
                     pw.print(model.getColumnName(i));
                     if (i < model.getColumnCount() - 2) pw.print(",");
                 }
                 pw.println();
 
                 for (int row = 0; row < model.getRowCount(); row++) {
-                    for (int col = 0; col < model.getColumnCount() - 1; col++) { // skip last column
+                    for (int col = 0; col < model.getColumnCount() - 1; col++) {
                         pw.print(model.getValueAt(row, col));
                         if (col < model.getColumnCount() - 2) pw.print(",");
                     }
@@ -122,7 +109,7 @@ public class ViewAttendance extends JFrame {
         }
     }
 
-    // Renderer for buttons in the table
+    // Renderer
     class ButtonRenderer extends JPanel implements TableCellRenderer {
         private final JButton updateBtn = new JButton("Update");
         private final JButton deleteBtn = new JButton("Delete");
@@ -143,7 +130,7 @@ public class ViewAttendance extends JFrame {
         }
     }
 
-    // Editor for buttons in the table
+    // Editor
     class ButtonEditor extends DefaultCellEditor {
         private JPanel panel;
         private JButton updateBtn;
@@ -188,8 +175,7 @@ public class ViewAttendance extends JFrame {
 
             if (newStatus != null && !newStatus.trim().isEmpty()) {
                 try {
-                    Connection con = DriverManager.getConnection(
-                            "jdbc:mysql://localhost:3306/attendance_db", "root", "root1234");
+                    Connection con = DBConnection.getConnection();  // ✅ Centralized connection
                     String sql = "UPDATE attendance SET status = ? WHERE id = ?";
                     PreparedStatement pstmt = con.prepareStatement(sql);
                     pstmt.setString(1, newStatus);
@@ -200,7 +186,6 @@ public class ViewAttendance extends JFrame {
                     JOptionPane.showMessageDialog(ViewAttendance.this, "Updated successfully!");
 
                     pstmt.close();
-                    con.close();
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(ViewAttendance.this, "Update failed: " + e.getMessage());
                 }
@@ -214,8 +199,7 @@ public class ViewAttendance extends JFrame {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 try {
-                    Connection con = DriverManager.getConnection(
-                            "jdbc:mysql://localhost:3306/attendance_db", "root", "root1234");
+                    Connection con = DBConnection.getConnection();  // ✅ Centralized connection
                     String sql = "DELETE FROM attendance WHERE id = ?";
                     PreparedStatement pstmt = con.prepareStatement(sql);
                     pstmt.setInt(1, id);
@@ -225,7 +209,6 @@ public class ViewAttendance extends JFrame {
                     JOptionPane.showMessageDialog(ViewAttendance.this, "Deleted successfully!");
 
                     pstmt.close();
-                    con.close();
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(ViewAttendance.this, "Delete failed: " + e.getMessage());
                 }

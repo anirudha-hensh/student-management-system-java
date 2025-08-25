@@ -10,12 +10,11 @@ public class DBConnection {
 
     public static Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
-            String url = "jdbc:mysql://localhost:3306/attendance_db";
-            String user = "root"; // update this
-            String pass = "yourpassword"; // update this
+            String url = "jdbc:mysql://localhost:3306/attendance_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+            String user = "root";
+            String pass = "1234";  // ✅ Correct password
             connection = DriverManager.getConnection(url, user, pass);
         }
         return connection;
     }
 }
-

@@ -1,109 +1,88 @@
+import dao.StudentDAO;
+import db.DBConnection;
+import models.Student;
+import views.*;  // if needed
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.sql.*;
-import java.time.LocalDate;
 
 public class MarkAttendance extends JFrame {
 
-    static final String DB_URL = "jdbc:mysql://localhost:3306/attendance_db";
-    static final String USER = "root";
-    static final String PASS = "root1234";
-
-    JTextField studentIdField, nameField, dateField;
-    JComboBox<String> statusBox;
+    private JTextField studentIdField, nameField;
+    private JComboBox<String> statusCombo;
+    private JButton submitButton;
 
     public MarkAttendance() {
         setTitle("Mark Attendance");
-        setSize(400, 350);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 300);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
 
-        JPanel panel = new JPanel(new GridBagLayout());
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(5, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        panel.setBackground(Color.WHITE);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Student ID
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("Student ID:"), gbc);
-        gbc.gridx = 1;
-        studentIdField = new JTextField(20);
-        panel.add(studentIdField, gbc);
+        JLabel idLabel = new JLabel("Student ID:");
+        studentIdField = new JTextField();
+        JLabel nameLabel = new JLabel("Name:");
+        nameField = new JTextField();
+        JLabel statusLabel = new JLabel("Status:");
+        String[] statusOptions = {"Present", "Absent", "Leave"};
+        statusCombo = new JComboBox<>(statusOptions);
 
-        // Student Name
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("Name:"), gbc);
-        gbc.gridx = 1;
-        nameField = new JTextField(20);
-        panel.add(nameField, gbc);
+        submitButton = new JButton("Mark Attendance");
+        submitButton.setBackground(new Color(0, 153, 76));
+        submitButton.setForeground(Color.WHITE);
+        submitButton.setFocusPainted(false);
 
-        // Date
-        gbc.gridx = 0; gbc.gridy = 2;
-        panel.add(new JLabel("Date:"), gbc);
-        gbc.gridx = 1;
-        dateField = new JTextField(LocalDate.now().toString());
-        dateField.setEditable(false);
-        panel.add(dateField, gbc);
+        submitButton.addActionListener(e -> insertAttendance());
 
-        // Status Dropdown
-        gbc.gridx = 0; gbc.gridy = 3;
-        panel.add(new JLabel("Status:"), gbc);
-        gbc.gridx = 1;
-        statusBox = new JComboBox<>(new String[]{"Present", "Absent", "Leave"});
-        panel.add(statusBox, gbc);
+        panel.add(idLabel);
+        panel.add(studentIdField);
+        panel.add(nameLabel);
+        panel.add(nameField);
+        panel.add(statusLabel);
+        panel.add(statusCombo);
+        panel.add(new JLabel(""));
+        panel.add(submitButton);
 
-        // Submit Button
-        JButton submitBtn = new JButton("Submit");
-        submitBtn.setBackground(new Color(0, 123, 255));
-        submitBtn.setForeground(Color.WHITE);
-        submitBtn.setFont(new Font("Arial", Font.BOLD, 14));
-        submitBtn.setFocusPainted(false);
-        submitBtn.addActionListener(e -> insertAttendance());
-
-        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
-        panel.add(submitBtn, gbc);
-
-        add(panel, BorderLayout.CENTER);
+        add(panel);
         setVisible(true);
     }
 
     private void insertAttendance() {
         String studentId = studentIdField.getText().trim();
         String name = nameField.getText().trim();
-        String date = dateField.getText().trim();
-        String status = (String) statusBox.getSelectedItem();
+        String status = (String) statusCombo.getSelectedItem();
 
         if (studentId.isEmpty() || name.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Student ID and Name are required.");
+            JOptionPane.showMessageDialog(this, "Please fill all fields.");
             return;
         }
 
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
-            String sql = "INSERT INTO attendance (student_id, name, date, status) VALUES (?, ?, ?, ?)";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        try {
+            Connection conn = DBConnection.getConnection();  // ✅ Centralized connection
+            String query = "INSERT INTO attendance (student_id, name, date, status) VALUES (?, ?, CURDATE(), ?)";
+            PreparedStatement stmt = conn.prepareStatement(query);
             stmt.setString(1, studentId);
             stmt.setString(2, name);
-            stmt.setString(3, date);
-            stmt.setString(4, status);
+            stmt.setString(3, status);
 
-            int rows = stmt.executeUpdate();
-            if (rows > 0) {
-                JOptionPane.showMessageDialog(this, "Attendance marked successfully.");
+            int rowsInserted = stmt.executeUpdate();
+            if (rowsInserted > 0) {
+                JOptionPane.showMessageDialog(this, "Attendance marked successfully!");
                 studentIdField.setText("");
                 nameField.setText("");
-                statusBox.setSelectedIndex(0);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Database error occurred.");
+
+            stmt.close();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
         }
     }
 
-   public static void main(String[] args) {
+    public static void main(String[] args) {
         new MarkAttendance();
     }
 }
